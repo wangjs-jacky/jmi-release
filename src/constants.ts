@@ -12,3 +12,6 @@ export const ESLINT_PATH = join(PROJECT_ROOT, "./.eslintrc.js");
 
 /* changelog 文件 */
 export const CHANGELOG_NAME = 'CHANGELOG.md';
+
+/* tmp changelog 文件 */
+export const TMP_CHANGELOG_NAME  = '.TEMP_CHANGELOG.md';

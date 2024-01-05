@@ -9,7 +9,6 @@ const addTag = async (nextVersion: string) => {
   const { $ } = await import('execa');
 
   try {
-    await $`git checkout -b branch/v${nextVersion}`;
     await $`git tag v${nextVersion}`;
   } catch (err) {
     console.log(chalk.red(err));
@@ -20,8 +19,6 @@ const addTag = async (nextVersion: string) => {
   return async () => {
     try {
       await $`git tag -d v${nextVersion}`;
-      await $`git checkout main`;
-      await $`git branch -d branch/v${nextVersion}`;
     } catch (error) {
       console.log("error", error);
     }

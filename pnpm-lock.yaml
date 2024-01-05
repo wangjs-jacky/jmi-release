@@ -11,12 +11,18 @@ dependencies:
   '@umijs/fabric':
     specifier: ^3.0.0
     version: 3.0.0
+  add-stream:
+    specifier: ^1.0.0
+    version: 1.0.0
   cac:
     specifier: ^6.7.14
     version: 6.7.14
   chalk:
     specifier: ^4.0.0
     version: 4.0.0
+  conventional-changelog:
+    specifier: ^5.1.0
+    version: 5.1.0
   conventional-changelog-cli:
     specifier: ^4.1.0
     version: 4.1.0

@@ -1,7 +1,8 @@
-import chalk = require("chalk");
+const chalk = require("chalk");
 import { exitPrompt } from "../../utils/exitPrompt";
 import { confirm, isCancel, spinner } from '@clack/prompts';
 import { failCallbacks } from "../../core/failCallbacks";
+import { text } from '@clack/prompts';
 
 /**
  * 检查 git status 的状态
@@ -18,7 +19,6 @@ const logGitStatus = async () => {
     console.log(chalk.red(err));
   }
 }
-
 
 /**
  * 交互提示用户二次确认是否需要上传这些文件
@@ -118,6 +118,38 @@ export const gitPush = async () => {
   s.stop('git仓库推送完毕');
 }
 
+export const isRemoteGitExist = async () => {
+  const { $ } = await import('execa');
+  const { stdout: isExist } = await $`git remote -v`;
+  return isExist.includes('origin') ? true : false;
+}
+
+export const gitRemoteAdd = async () => {
+  const { $ } = await import('execa');
+
+  const remoteGitUrl = await text({
+    message: '请输入需要远端的 github 地址?',
+    placeholder: '仓库示例：https://github.com/<author>/<repo>.git',
+  }) as string;
+
+  if (isCancel(remoteGitUrl)) {
+    await exitPrompt();
+  }
+
+  const remoteGitRegex = /^https?:\/\/github.com\/[a-zA-Z0-9-\/]+.git$/;
+
+  if (!remoteGitRegex.test(remoteGitUrl)) {
+    console.log(chalk.red('这不是一个有效的 Git 远程仓库地址，请重新输入'));
+    await gitRemoteAdd();
+    return;
+  }
+
+  await $`git remote add origin ${remoteGitUrl}`;
+  await $`git branch -M main`;
+  await $`git push -u origin main`;
+}
+
+
 
 export const middleware_gitPush = async (next) => {
   /* step1: 打印 git status */
@@ -127,7 +159,9 @@ export const middleware_gitPush = async (next) => {
   const confirmGitFiles = await confirmGitStatus();
 
   if (!confirmGitFiles) {
-    await exitPrompt();
+    /* await exitPrompt(); */
+    next();
+    return;
   }
 
   /* step3: 执行 git add . */
@@ -137,6 +171,14 @@ export const middleware_gitPush = async (next) => {
   /* step4: 自动生成 commit message 并提交 */
   const resetGitCommit = await gitCommit();
   failCallbacks.tapPromise(resetGitCommit);
+
+  /* 判断是否存在 remote git 仓库 */
+  const isGitExist = await isRemoteGitExist();
+
+  if (!isGitExist) {
+    console.log(chalk.red("远端仓库不存在"));
+    await gitRemoteAdd();
+  }
 
   await gitPush()
 
